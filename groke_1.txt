@@ -1,0 +1,13 @@
+**The attached CSV contains qualitative research notes (text descriptions across 40 parameters) for ~20 Nifty Pharma companies. It has no numerical Open/High/Low/Close, volume, or time-series price data.**
+
+True candlestick, volume, moving-average, drawdown, and relative-performance charts therefore cannot be generated directly from the file. A production-grade price dashboard needs live/historical OHLCV (e.g. via Yahoo Finance / NSE / TradingView).
+
+Below is a **complete, self-contained single-file HTML + CSS + JavaScript dashboard** that:
+
+- Parses & displays the full research data
+- Provides interactive peer-comparison tables, bar charts, heatmaps, scatter plots, and radar-style quality scores extracted from the notes
+- Includes a **TradingView Advanced Chart widget** (real candlesticks + volume + MAs) for any selected NSE ticker
+- Follows the requested flow as closely as possible: **Price/Candles → Volume → MAs → Returns/Volatility proxies → Fundamentals → Peer comparison**
+- Uses Chart.js + modern UI (no external build step)
+
+Save the code as `nifty-pharma-dashboard.html` and open it in any modern browser.

@@ -1,0 +1,40 @@
+1. **Revenue growth** — historical and segment-wise.
+2. **EBITDA/operating margins** — stability and trajectory.
+3. **ROCE & ROE** — preferably through the cycle.
+4. **Free cash flow** — consistency and conversion from profit.
+5. **Debt & interest coverage** — leverage, refinancing risk.
+6. **Working capital** — receivables, inventory, cash-conversion cycle.
+7. **Product mix** — branded, generic, specialty, API, CDMO, OTC.
+8. **Geographic mix** — India/US/Europe/emerging markets.
+9. **Drug pipeline** — molecules, indications, development stage.
+10. **Patent/IP position** — patent expiry, litigation, exclusivity.
+11. **Regulatory record** — USFDA/EMA/MHRA observations, warning letters, import alerts.
+12. **R&D spending & productivity** — R&D as % sales and meaningful pipeline output.
+13. **ANDA/approval pipeline** — particularly important for generics.
+14. **Pricing pressure** — especially US generics.
+15. **Market size & growth** for major therapies.
+16. **Competition** — number/strength of competing drugs.
+17. **Concentration risk** — dependence on a few products/customers/markets.
+18. **Manufacturing capacity & utilization**.
+19. **Quality/compliance systems** — recalls, deviations, regulatory remediation.
+20. **API/raw-material dependence** — China/import exposure and backward integration.
+21. **Acquisitions/JVs** — price paid, strategic rationale, integration.
+22. **Management/promoter quality** — capital allocation, governance, related-party transactions.
+23. **Promoter holding/pledging** and institutional ownership.
+24. **Employee/ESOP dilution** and share-count growth.
+25. **Contingent liabilities** — litigation, tax, regulatory claims.
+26. **Earnings quality** — one-offs, exceptional items, accounting changes.
+27. **Cash vs reported profit** — investigate persistent divergence.
+28. **Valuation** — P/E, EV/EBITDA, P/S, FCF yield versus history and peers.
+29. **PEG/growth-adjusted valuation** — only alongside business quality.
+30. **Scenario analysis** — base/bull/bear cases for approvals, pricing, margins and pipeline.
+31. **Currency exposure** — especially USD/INR.
+32. **Dividend/buyback policy** and capital allocation.
+33. **Capacity expansion/capex requirements**.
+34. **Biosimilar/specialty-drug opportunity**, where relevant.
+35. **Patent cliff/revenue-at-risk analysis** over the next 3–5 years.
+36. **Insider/promoter transactions** and auditor qualifications.
+37. **Corporate governance** — board independence and disclosure quality.
+38. **Industry cycle & policy changes** — drug pricing, reimbursement, healthcare regulation.
+39. **ESG/environmental compliance** where financially material.
+40. **Thesis-breakers** — identify what specific developments would invalidate the investment thesis.

@@ -1,0 +1,15 @@
+Data visualizations
+ 
+**Candlestick chart** — Open, High, Low, Close; best for understanding daily/weekly price movement.
+**Line chart** — Closing price over time; best for simple long-term trends.
+**Volume bars** — Shows trading activity and helps identify unusually active periods.
+**Moving averages** — Add 20/50/200-day averages to identify trends.
+**Relative-performance chart** — Compare a stock against an index or competitors.
+**Drawdown chart** — Shows how far the stock has fallen from its previous peak.
+**Scatter plot** — Compare risk vs. return across multiple companies.
+**Bar chart** — Compare revenue, profit, EPS, P/E, or market cap between companies.
+**Heatmap** — Quickly compare many stocks/sectors by daily or monthly return.
+
+stock dashboard 2
+
+**Price + Candlesticks → Volume → Moving averages → Returns → Volatility → Fundamentals → Peer comparison**

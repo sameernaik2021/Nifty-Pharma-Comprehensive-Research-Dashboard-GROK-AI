@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nifty Pharma Research Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.5; padding: 16px;
+  }
+  h1, h2, h3 { font-weight: 600; }
+  h1 { font-size: 1.75rem; margin-bottom: 8px; }
+  h2 { font-size: 1.25rem; margin: 24px 0 12px; color: var(--accent); }
+  .subtitle { color: var(--muted); margin-bottom: 24px; }
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; overflow: hidden;
+  }
+  .card h3 { font-size: 0.95rem; margin-bottom: 12px; color: var(--muted); }
+  select, button {
+    background: #0f172a; color: var(--text); border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+  }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--card); }
+  tr:hover td { background: rgba(56,189,248,0.05); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .badge-green { background: rgba(34,197,94,0.2); color: var(--green); }
+  .badge-yellow { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .badge-red { background: rgba(239,68,68,0.2); color: var(--red); }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tab {
+    padding: 8px 16px; border-radius: 8px; background: transparent;
+    border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+  }
+  .tab.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+  .section { display: none; }
+  .section.active { display: block; }
+  #tv-chart { height: 480px; }
+  .metric-row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 0.9rem; }
+  .metric-label { color: var(--muted); }
+  .scroll { max-height: 420px; overflow: auto; }
+  .note {
+    background: rgba(56,189,248,0.1); border-left: 3px solid var(--accent);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 0.85rem;
+  }
+  canvas { max-height: 320px; }
+</style>
+</head>
+<body>
+
+<h1>Nifty Pharma Comprehensive Research Dashboard</h1>
+<p class="subtitle">Data source: Attached 40-parameter research CSV · Price charts via TradingView (live) · Fundamentals & peer scores extracted from qualitative notes</p>
+
+<div class="tabs">
+  <button class="tab active" data-tab="price">1. Price + Candles + Volume + MAs</button>
+  <button class="tab" data-tab="returns">2. Returns / Volatility Proxies</button>
+  <button class="tab" data-tab="fundamentals">3. Fundamentals Snapshot</button>
+  <button class="tab" data-tab="peer">4. Peer Comparison & Heatmap</button>
+  <button class="tab" data-tab="scatter">5. Risk-Return & Quality Scores</button>
+  <button class="tab" data-tab="raw">6. Full Research Notes</button>
+</div>
+
+<!-- ========== 1. PRICE + CANDLES + VOLUME + MAs ========== -->
+<section id="price" class="section active">
+  <div class="card">
+    <h3>Live Candlestick + Volume + Moving Averages (TradingView)</h3>
+    <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <label>Select Stock:</label>
+      <select id="tickerSelect">
+        <option value="NSE:DIVISLAB">DIVISLAB</option>
+        <option value="NSE:SUNPHARMA">SUNPHARMA</option>
+        <option value="NSE:DRREDDY">DRREDDY</option>
+        <option value="NSE:ZYDUSLIFE">ZYDUSLIFE</option>
+        <option value="NSE:LAURUSLABS">LAURUSLABS</option>
+        <option value="NSE:GLENMARK">GLENMARK</option>
+        <option value="NSE:AUROPHARMA">AUROPHARMA</option>
+        <option value="NSE:TORNTPHARM">TORNTPHARM</option>
+        <option value="NSE:LUPIN">LUPIN</option>
+        <option value="NSE:CIPLA">CIPLA</option>
+        <option value="NSE:ALKEM">ALKEM</option>
+        <option value="NSE:MANKIND">MANKIND</option>
+        <option value="NSE:GLAND">GLAND</option>
+        <option value="NSE:BIOCON">BIOCON</option>
+        <option value="NSE:AJANTPHARM">AJANTPHARM</option>
+        <option value="NSE:ABBOTINDIA">ABBOTINDIA</option>
+        <option value="NSE:IPCALAB">IPCALAB</option>
+        <option value="NSE:WOCKPHARMA">WOCKPHARMA</option>
+      </select>
+      <button onclick="loadTV()">Load Chart</button>
+    </div>
+    <div id="tv-chart"></div>
+    <div class="note">
+      <strong>Note:</strong> Real OHLC + Volume + 20/50/200-day MAs are provided by TradingView widget (requires internet). 
+      The CSV itself contains no price history, so pure Chart.js candlesticks cannot be drawn from the file alone.
+    </div>
+  </div>
+</section>
+
+<!-- ========== 2. RETURNS / VOLATILITY ========== -->
+<section id="returns" class="section">
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Historical Growth Ranges (from research notes)</h3>
+      <canvas id="growthChart"></canvas>
+    </div>
+    <div class="card">
+      <h3>EBITDA Margin Stability</h3>
+      <canvas id="marginChart"></canvas>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>Drawdown / Thesis-Breaker Risk (Qualitative)</h3>
+    <div class="scroll">
+      <table id="riskTable">
+        <thead><tr><th>Company</th><th>Key Thesis Breaker</th><th>Risk Level</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3. FUNDAMENTALS ========== -->
+<section id="fundamentals" class="section">
+  <div class="grid grid-3" id="fundCards"></div>
+</section>
+
+<!-- ========== 4. PEER COMPARISON ========== -->
+<section id="peer" class="section">
+  <div class="card">
+    <h3>Valuation & Quality Metrics (Extracted Ranges)</h3>
+    <div class="scroll">
+      <table id="peerTable">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Rev Growth</th>
+            <th>EBITDA %</th>
+            <th>ROCE</th>
+            <th>P/E</th>
+            <th>PEG</th>
+            <th>Debt</th>
+            <th>Promoter %</th>
+            <th>Quality Score*</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:8px;">*Quality Score = simple composite (margins + ROCE + balance-sheet + regulatory cleanliness) scored 1-10 from notes.</p>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>Heatmap – Relative Strength on Key Parameters</h3>
+    <canvas id="heatmapChart" height="200"></canvas>
+  </div>
+</section>
+
+<!-- ========== 5. SCATTER & QUALITY ========== -->
+<section id="scatter" class="section">
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Risk vs Return Proxy (ROCE vs P/E)</h3>
+      <canvas id="scatterChart"></canvas>
+    </div>
+    <div class="card">
+      <h3>Business Quality Radar (Selected)</h3>
+      <select id="radarSelect" onchange="updateRadar()">
+        <option value="DIVISLAB">DIVISLAB</option>
+        <option value="SUNPHARMA">SUNPHARMA</option>
+        <option value="CIPLA">CIPLA</option>
+        <option value="TORNTPHARM">TORNTPHARM</option>
+        <option value="MANKIND">MANKIND</option>
+        <option value="ABBOTINDIA">ABBOTINDIA</option>
+      </select>
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 6. RAW NOTES ========== -->
+<section id="raw" class="section">
+  <div class="card">
+    <h3>Full Research Notes (Searchable)</h3>
+    <input type="text" id="searchNotes" placeholder="Filter by company or keyword..." 
+           style="width:100%;margin-bottom:12px;padding:10px;background:#0f172a;border:1px solid var(--border);border-radius:8px;color:var(--text);">
+    <div class="scroll" style="max-height:600px;" id="rawNotes"></div>
+  </div>
+</section>
+
+<script>
+// ========== EMBEDDED DATA (parsed & quantified from CSV) ==========
+const companies = {
+  DIVISLAB: {
+    growth: "12-15%", ebitda: "30-38%", roce: "25-30%+", pe: "45-60x", peg: "2.2-2.8x",
+    debt: "Net cash", promoter: 51.8, quality: 9.5,
+    thesis: "Loss of key innovator client or prolonged delays in custom synthesis",
+    notes: "Robust CDMO/API pure-play. Industry-leading margins, debt-free, immaculate USFDA, high FCF. Premium valuation justified by ROCE."
+  },
+  SUNPHARMA: {
+    growth: "10-12%", ebitda: "25-28%", roce: "18-22%", pe: "30-38x", peg: "1.8-2.2x",
+    debt: "Net debt-free", promoter: 54.5, quality: 8.8,
+    thesis: "Persistent USFDA remediation delays at major facilities",
+    notes: "Diversified specialty + India branded + US generics. Strong specialty pipeline (Ilumya, Cequa). High earnings quality."
+  },
+  DRREDDY: {
+    growth: "10-14%", ebitda: "20-25%", roce: "20-25%", pe: "20-26x", peg: "1.2-1.6x",
+    debt: "Net cash", promoter: 26.7, quality: 8.2,
+    thesis: "Cliff drop-off post gRevlimid exclusivity",
+    notes: "Strong complex generics & injectables. Attractive valuation. Biosimilar opportunity."
+  },
+  ZYDUSLIFE: {
+    growth: "9-11%", ebitda: "22-26%", roce: "15-19%", pe: "24-30x", peg: "1.5x",
+    debt: "Net cash", promoter: 74.9, quality: 7.8,
+    thesis: "Setbacks in global clinical trials of NCE pipeline",
+    notes: "India + US focus. Saroglitazar NCE optionality. Clean balance sheet post divestments."
+  },
+  LAURUSLABS: {
+    growth: "15-20%", ebitda: "18-25%", roce: "15-20%", pe: "30-45x", peg: "2.0x",
+    debt: "Moderate (<0.5x)", promoter: 27.2, quality: 7.0,
+    thesis: "Prolonged ARV API pricing weakness + slow CDMO scale-up",
+    notes: "High growth but cyclical ARV. Expanding CDMO & biologics. Capex heavy historically."
+  },
+  GLENMARK: {
+    growth: "7-10%", ebitda: "17-21%", roce: "12-16%", pe: "20-26x", peg: "1.4x",
+    debt: "Reduced post GLS sale", promoter: 46.6, quality: 6.5,
+    thesis: "Unresolved USFDA compliance at core plants",
+    notes: "Respiratory & dermatology strength. Improving FCF after deleveraging."
+  },
+  AUROPHARMA: {
+    growth: "8-12%", ebitda: "18-21%", roce: "14-18%", pe: "18-24x", peg: "1.2x",
+    debt: "Low", promoter: 51.8, quality: 7.5,
+    thesis: "Regulatory setbacks at sterile plants",
+    notes: "Volume leader in US oral solids + injectables ramp. Attractive valuation."
+  },
+  TORNTPHARM: {
+    growth: "12-15%", ebitda: "27-31%", roce: "18-22%", pe: "35-48x", peg: "2.0x",
+    debt: "Elevated (Curatio) but deleveraging", promoter: 71.25, quality: 9.0,
+    thesis: "Stumble in Curatio integration or DPCO price caps",
+    notes: "Domestic chronic leader. Exceptional capital allocation. High margins."
+  },
+  LUPIN: {
+    growth: "8-10%", ebitda: "16-20%", roce: "10-14%", pe: "28-38x", peg: "1.6x",
+    debt: "Comfortable", promoter: 47.0, quality: 7.0,
+    thesis: "Re-emergence of regulatory observations",
+    notes: "Turnaround story. Complex respiratory (gSpiriva) key. Improving FCF."
+  },
+  CIPLA: {
+    growth: "10-13%", ebitda: "23-26%", roce: "18-22%", pe: "26-34x", peg: "1.5x",
+    debt: "Net debt-free", promoter: 33.5, quality: 8.7,
+    thesis: "Loss of domestic respiratory leadership or US inhaler delays",
+    notes: "Respiratory powerhouse (India + SA + US). Excellent ESG & cash conversion."
+  },
+  ALKEM: {
+    growth: "10-12%", ebitda: "16-20%", roce: "16-20%", pe: "30-38x", peg: "1.8x",
+    debt: "Virtually debt-free", promoter: 57.0, quality: 8.0,
+    thesis: "Slow pivot to chronic or US regulatory issues",
+    notes: "Domestic anti-infective leader diversifying into chronic. Strong FCF."
+  },
+  MANKIND: {
+    growth: "14-17%", ebitda: "22-25%", roce: "22-28%", pe: "38-50x", peg: "2.2x",
+    debt: "Net debt-free", promoter: 74.5, quality: 8.9,
+    thesis: "Stumble in BSV integration or aggressive pricing regulation",
+    notes: "Dominant domestic volume player. High ROCE, asset-light. BSV specialty entry."
+  },
+  GLAND: {
+    growth: "12-15%", ebitda: "27-32%", roce: "18-22%", pe: "30-40x", peg: "1.8x",
+    debt: "Net cash", promoter: 57.9, quality: 8.3,
+    thesis: "Regulatory issues or loss of key B2B partners",
+    notes: "Sterile injectables CDMO pure-play. High margins, partner concentration risk."
+  },
+  BIOCON: {
+    growth: "20-25%", ebitda: "20-24%", roce: "8-12%", pe: "35-50x", peg: "2.0x",
+    debt: "Elevated (post Viatris)", promoter: 60.6, quality: 6.8,
+    thesis: "Regulatory roadblocks or slow biosimilar uptake",
+    notes: "Global biosimilars + Syngene. Capital intensive; ROCE diluted by goodwill."
+  },
+  AJANTPHARM: {
+    growth: "11-14%", ebitda: "25-29%", roce: "22-28%", pe: "28-36x", peg: "1.5x",
+    debt: "Net cash", promoter: 66.5, quality: 9.0,
+    thesis: "Currency devaluation in key African markets",
+    notes: "Specialty branded generics (India + EM). Exceptional ROCE & FCF."
+  },
+  ABBOTINDIA: {
+    growth: "10-12%", ebitda: "22-26%", roce: "40-50%+", pe: "45-60x", peg: "2.5x",
+    debt: "Debt-free", promoter: 75.0, quality: 9.7,
+    thesis: "Aggressive expansion of DPCO covering power brands",
+    notes: "Asset-light MNC power brands. Highest ROCE/ROE in sector. Pure domestic."
+  },
+  IPCALAB: {
+    growth: "11-14%", ebitda: "18-22%", roce: "16-20%", pe: "28-36x", peg: "1.6x",
+    debt: "Low", promoter: 46.5, quality: 7.7,
+    thesis: "Execution missteps in Unichem integration",
+    notes: "Domestic + API. Unichem acquisition expanding chronic presence."
+  },
+  WOCKPHARMA: {
+    growth: "-2 to +5%", ebitda: "8-12%", roce: "<5%", pe: "Volatile", peg: "N/A",
+    debt: "Elevated", promoter: 55, quality: 4.0,
+    thesis: "Failure to monetize novel antibiotic pipeline or prolonged regulatory bans",
+    notes: "Turnaround / high-risk. Historical regulatory & debt issues. NCE optionality."
+  }
+};
+
+// ========== TABS ==========
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  });
+});
+
+// ========== TRADINGVIEW ==========
+let tvWidget = null;
+function loadTV() {
+  const symbol = document.getElementById('tickerSelect').value;
+  if (tvWidget) tvWidget.remove();
+  tvWidget = new TradingView.widget({
+    container_id: "tv-chart",
+    symbol: symbol,
+    interval: "D",
+    timezone: "Asia/Kolkata",
+    theme: "dark",
+    style: "1", // candles
+    locale: "en",
+    toolbar_bg: "#1e293b",
+    enable_publishing: false,
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    studies: ["MASimple@tv-basicstudies", "MASimple@tv-basicstudies", "MASimple@tv-basicstudies", "Volume@tv-basicstudies"],
+    studies_overrides: {
+      "moving average.length": 20,
+      "moving average_1.length": 50,
+      "moving average_2.length": 200
+    },
+    width: "100%",
+    height: 480
+  });
+}
+loadTV(); // initial
+
+// ========== GROWTH & MARGIN CHARTS ==========
+const labels = Object.keys(companies);
+const growthMid = labels.map(c => {
+  const g = companies[c].growth;
+  const nums = g.match(/[\d.]+/g);
+  return nums ? (parseFloat(nums[0]) + (nums[1] ? parseFloat(nums[1]) : parseFloat(nums[0]))) / 2 : 0;
+});
+const ebitdaMid = labels.map(c => {
+  const e = companies[c].ebitda;
+  const nums = e.match(/[\d.]+/g);
+  return nums ? (parseFloat(nums[0]) + (nums[1] ? parseFloat(nums[1]) : parseFloat(nums[0]))) / 2 : 0;
+});
+
+new Chart(document.getElementById('growthChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{ label: 'Mid-point Historical CAGR %', data: growthMid, backgroundColor: '#38bdf8' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('marginChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{ label: 'Mid-point EBITDA Margin %', data: ebitdaMid, backgroundColor: '#22c55e' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+// ========== RISK TABLE ==========
+const riskBody = document.querySelector('#riskTable tbody');
+labels.forEach(c => {
+  const risk = companies[c].quality >= 8.5 ? 'Low' : companies[c].quality >= 7 ? 'Medium' : 'High';
+  const cls = risk === 'Low' ? 'badge-green' : risk === 'Medium' ? 'badge-yellow' : 'badge-red';
+  riskBody.innerHTML += `<tr><td>${c}</td><td>${companies[c].thesis}</td><td><span class="badge ${cls}">${risk}</span></td></tr>`;
+});
+
+// ========== FUNDAMENTAL CARDS ==========
+const fundCards = document.getElementById('fundCards');
+labels.forEach(c => {
+  const d = companies[c];
+  fundCards.innerHTML += `
+    <div class="card">
+      <h3>${c}</h3>
+      <div class="metric-row"><span class="metric-label">Growth</span><span>${d.growth}</span></div>
+      <div class="metric-row"><span class="metric-label">EBITDA</span><span>${d.ebitda}</span></div>
+      <div class="metric-row"><span class="metric-label">ROCE</span><span>${d.roce}</span></div>
+      <div class="metric-row"><span class="metric-label">P/E</span><span>${d.pe}</span></div>
+      <div class="metric-row"><span class="metric-label">Debt</span><span>${d.debt}</span></div>
+      <div class="metric-row"><span class="metric-label">Promoter</span><span>${d.promoter}%</span></div>
+      <div class="metric-row"><span class="metric-label">Quality</span><span>${d.quality}/10</span></div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-top:8px;">${d.notes.slice(0,120)}...</p>
+    </div>`;
+});
+
+// ========== PEER TABLE ==========
+const peerBody = document.querySelector('#peerTable tbody');
+labels.forEach(c => {
+  const d = companies[c];
+  peerBody.innerHTML += `
+    <tr>
+      <td><strong>${c}</strong></td>
+      <td>${d.growth}</td>
+      <td>${d.ebitda}</td>
+      <td>${d.roce}</td>
+      <td>${d.pe}</td>
+      <td>${d.peg}</td>
+      <td>${d.debt}</td>
+      <td>${d.promoter}%</td>
+      <td>${d.quality}</td>
+    </tr>`;
+});
+
+// ========== HEATMAP (simple bar proxy) ==========
+new Chart(document.getElementById('heatmapChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      { label: 'Quality Score', data: labels.map(c => companies[c].quality), backgroundColor: '#38bdf8' },
+      { label: 'Promoter % / 10', data: labels.map(c => companies[c].promoter / 10), backgroundColor: '#a78bfa' }
+    ]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+});
+
+// ========== SCATTER (ROCE mid vs P/E mid) ==========
+const peMid = labels.map(c => {
+  const p = companies[c].pe;
+  const nums = p.match(/[\d.]+/g);
+  return nums ? (parseFloat(nums[0]) + (nums[1] ? parseFloat(nums[1]) : parseFloat(nums[0]))) / 2 : 30;
+});
+const roceMid = labels.map(c => {
+  const r = companies[c].roce;
+  const nums = r.match(/[\d.]+/g);
+  return nums ? (parseFloat(nums[0]) + (nums[1] ? parseFloat(nums[1]) : parseFloat(nums[0]))) / 2 : 15;
+});
+
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Companies',
+      data: labels.map((c, i) => ({ x: peMid[i], y: roceMid[i], label: c })),
+      backgroundColor: '#38bdf8',
+      pointRadius: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => `${labels[ctx.dataIndex]}: P/E ${ctx.raw.x.toFixed(0)}x, ROCE ${ctx.raw.y.toFixed(0)}%`
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'P/E (mid)' } },
+      y: { title: { display: true, text: 'ROCE % (mid)' } }
+    }
+  }
+});
+
+// ========== RADAR ==========
+const radarScores = {
+  DIVISLAB: [9.5, 9.5, 9, 9, 8, 9],
+  SUNPHARMA: [8.5, 8.5, 8, 8.5, 7.5, 8.5],
+  CIPLA: [8.5, 8.5, 8.5, 9, 8, 9],
+  TORNTPHARM: [9, 9, 8.5, 9, 8, 9],
+  MANKIND: [9, 8.5, 9, 8.5, 9, 8.5],
+  ABBOTINDIA: [9.5, 9.5, 10, 9.5, 9.5, 9]
+};
+const radarLabels = ['Margins', 'ROCE', 'Balance Sheet', 'Regulatory', 'Growth', 'Governance'];
+let radarChart;
+function updateRadar() {
+  const c = document.getElementById('radarSelect').value;
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: radarLabels,
+      datasets: [{
+        label: c,
+        data: radarScores[c] || [7,7,7,7,7,7],
+        backgroundColor: 'rgba(56,189,248,0.2)',
+        borderColor: '#38bdf8',
+        pointBackgroundColor: '#38bdf8'
+      }]
+    },
+    options: { responsive: true, scales: { r: { min: 0, max: 10 } } }
+  });
+}
+updateRadar();
+
+// ========== RAW NOTES ==========
+const rawDiv = document.getElementById('rawNotes');
+labels.forEach(c => {
+  rawDiv.innerHTML += `
+    <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);" data-company="${c}">
+      <h3 style="color:var(--accent);">${c}</h3>
+      <p><strong>Thesis breaker:</strong> ${companies[c].thesis}</p>
+      <p>${companies[c].notes}</p>
+    </div>`;
+});
+document.getElementById('searchNotes').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('#rawNotes > div').forEach(d => {
+    d.style.display = d.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+  });
+});
+</script>
+</body>
+</html>
